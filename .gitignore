@@ -1,0 +1,9 @@
+#Ignore IDE files
+.vscode
+
+
+#Ignore C++ (CMAKE and other build files)
+/server/build
+
+
+
