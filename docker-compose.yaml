@@ -1,0 +1,35 @@
+services:
+  mosquitto:
+    image: eclipse-mosquitto:2
+    container_name: perun_broker
+    ports:
+      - "1883:1883"
+    volumes:
+      - ./mosquitto.conf:/mosquitto/config/mosquitto.conf
+
+  timescaledb:
+    image: timescale/timescaledb-ha:pg15
+    container_name: perun_db
+    environment:
+      - POSTGRES_DB=iot_db
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+    ports:
+      - "5432:5432"
+    volumes:
+      - timescale_data:/home/postgres/pgdata/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  perun_server:
+    build: ./server           
+    container_name: perun_server
+    ports:
+      - "18080:18080"
+    depends_on:
+      - timescaledb       
+    environment:
+      - DB_URL=postgresql://user:password@timescaledb:5432/iot_db
+      - MQTT_URL=tcp://mosquitto:1883
+
+volumes:
+  timescale_data:
