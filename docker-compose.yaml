@@ -8,9 +8,11 @@ services:
       - ./mosquitto.conf:/mosquitto/config/mosquitto.conf
     healthcheck:
       test: ["CMD", "mosquitto_sub", "-t", "$$SYS/broker/version", "-C", "1"]
-      interval: 3s
+      interval: 1m
       timeout: 3s
       retries: 5
+      start_period: 30s
+      start_interval: 3s
 
   timescaledb:
     image: timescale/timescaledb-ha:pg15

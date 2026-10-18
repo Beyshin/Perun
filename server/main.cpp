@@ -3,9 +3,13 @@
 #include <string>
 #include <thread>
 #include <pqxx/pqxx>
+#include <nlohmann/json.hpp>
 
 #include "crow.h"
 #include "MQTTClient.h"
+
+
+using json = nlohmann::json;
 
 
 std::string get_db_url(){
@@ -29,33 +33,48 @@ std::string get_mqtt_url(){
 }
 
 void db_worker(TSQueue<MQTTMessage>& messageQueue) {
-    try {
-        std::string conn_str =  get_db_url();
-        pqxx::connection conn(conn_str);
-        while (true) {
-            std::optional<MQTTMessage> message = messageQueue.pop();
-            
-            if (!message) {
-                std::cout << "Queue is shutting down, exiting db_worker." << std::endl;
-                break;
-            }
+    bool running = true;
+    while(running){
+            std::string conn_str =  get_db_url();
+            pqxx::connection conn(conn_str);
 
-            std::cout << "Processing message from queue: " << message->topic << " - ";
-            
-            pqxx::work txn(conn);
+            conn.prepare("insert_sensor_data", "INSERT INTO sensor_data (time, topic, temperature, humidity) VALUES (NOW(), $1, $2, $3)");
+
+            while (true) {
+                try {
+                std::optional<MQTTMessage> message = messageQueue.pop();
+                
+                if (!message) {
+                    std::cout << "[DB THREAD] Queue is shutting down, exiting db_worker." << std::endl;
+                    running = false;
+                    break;
+                }
+
+                std::cout << "[DB THREAD] Processing message from queue: " << message->topic << " - ";
+                
+                pqxx::work txn(conn);
         
-            //TODO: Zmienic dane na dynamiczne wstawianie z sensora / payload'u
-            txn.exec("INSERT INTO sensor_data (time, topic, temperature, humidity) VALUES (NOW(), 'test', 21.5, 60)");
-            txn.commit(); 
-            
-            std::cout << "Size after processing: "  << messageQueue.size() << std::endl;
-        }
-    } catch (const std::exception &e) {
-        std::cerr << "[DB THREAD ERROR] " << e.what() << std::endl;
+                json payload_json = json::parse(message->payload);
+                double temp = payload_json["temperature"].get<double>();
+                double hum  = payload_json["humidity"].get<double>();
+                
+                txn.exec_prepared("insert_sensor_data", message->topic, temp, hum);
+                txn.commit(); 
+                    std::cout << "Inserted into database: " << message->topic << " - " << payload_json.dump() << std::endl;
+                }catch (const json::parse_error& e) {
+                    std::cerr << "[DB JSON PARSE ERROR] " << e.what() << std::endl;
+                }catch (const pqxx::sql_error& e) {
+                    std::cerr << "[DB SQL ERROR] " << e.what() << std::endl;
+                    std::cerr << "Query was: " << e.query() << std::endl;
+                } catch (const std::exception& e) {
+                    std::cerr << "[DB ERROR] " << e.what() << std::endl;
+                }
+         } 
     }
 }
 
 int main(int argc, char** argv){
+
     TSQueue<MQTTMessage> messageQueue;
     std::thread dbThread(db_worker, std::ref(messageQueue));
 
@@ -68,7 +87,6 @@ int main(int argc, char** argv){
     //HTTP Routes
     {
         crow::SimpleApp app;
-
         CROW_ROUTE(app, "/")([](){
             crow::json::wvalue data;
             data["temperature"] = "21.5";
