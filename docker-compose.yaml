@@ -6,6 +6,11 @@ services:
       - "1883:1883"
     volumes:
       - ./mosquitto.conf:/mosquitto/config/mosquitto.conf
+    healthcheck:
+      test: ["CMD", "mosquitto_sub", "-t", "$$SYS/broker/version", "-C", "1"]
+      interval: 3s
+      timeout: 3s
+      retries: 5
 
   timescaledb:
     image: timescale/timescaledb-ha:pg15
@@ -19,14 +24,22 @@ services:
     volumes:
       - timescale_data:/home/postgres/pgdata/data
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
-
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d iot_db"]
+      interval: 3s
+      timeout: 3s
+      retries: 5
   perun_server:
     build: ./server           
     container_name: perun_server
     ports:
       - "18080:18080"
     depends_on:
-      - timescaledb       
+      timescaledb:
+        condition: service_healthy
+      mosquitto:
+        condition: service_healthy
+    restart: unless-stopped  
     environment:
       - DB_URL=postgresql://user:password@timescaledb:5432/iot_db
       - MQTT_URL=tcp://mosquitto:1883
