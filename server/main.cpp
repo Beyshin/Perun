@@ -88,19 +88,31 @@ int main(int argc, char** argv){
     {
         crow::SimpleApp app;
         CROW_ROUTE(app, "/")([](){
-            crow::json::wvalue data;
-            data["temperature"] = "21.5";
-            data["humidity"] = "60%";
-            data["status"] = "OK";
-            data["timestamp"] = "2024-06-01T12:00:00Z";
-        
-            return data;
+            pqxx::connection conn(get_db_url());
+            pqxx::work txn(conn);
+            
+            pqxx::result results = txn.exec("SELECT * FROM sensor_data ORDER BY time DESC LIMIT 10");
+            
+            json j = json::array();
+
+            for(auto row :  results){
+                j.push_back({
+                    {"time", row["time"].as<std::string>()},
+                    {"topic", row["topic"].as<std::string>()},
+                    {"temperature", row["temperature"].as<double>()},
+                    {"humidity", row["humidity"].as<double>()}
+                });
+            }
+
+            auto res = crow::response(j.dump());
+            res.add_header("Content-Type", "application/json");
+            return res;
         });
 
         app.port(18080).multithreaded().run();
     }
 
-    std::cout << "Shutting down..." << std::endl;
+    std::cout << "[SERVER] Shutting down..." << std::endl;
     messageQueue.shutdown();
     if(dbThread.joinable()) {
         dbThread.join();
