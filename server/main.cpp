@@ -102,7 +102,7 @@ int main(int argc, char** argv){
     //HTTP Routes
     {
         crow::SimpleApp app;
-        CROW_ROUTE(app, "/")([](){
+        CROW_ROUTE(app, "/api/temperatures")([](){
             pqxx::connection conn(get_db_url());
             pqxx::work txn(conn);
             

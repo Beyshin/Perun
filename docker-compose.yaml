@@ -31,6 +31,7 @@ services:
       interval: 3s
       timeout: 3s
       retries: 5
+
   perun_server:
     build: ./server           
     container_name: perun_server
@@ -45,6 +46,17 @@ services:
     environment:
       - DB_URL=postgresql://user:password@timescaledb:5432/iot_db
       - MQTT_URL=tcp://mosquitto:1883
+
+  perun_frontend:
+    build: ./frontend
+    container_name: perun_frontend
+    ports:
+      - "5173:5173"
+    depends_on:
+      - perun_server
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
 
 volumes:
   timescale_data:
