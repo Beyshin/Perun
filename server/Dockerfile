@@ -35,12 +35,17 @@ RUN git clone https://github.com/CrowCpp/Crow.git /tmp/crow && \
 
 
 WORKDIR /app
+COPY CMakeLists.txt .
+
+#dummy
+RUN touch main.cpp && \
+    mkdir build && cd build && \
+    cmake -D CMAKE_CXX_STANDARD=20 ..
+
 COPY . .
 
+RUN cd build && make -j$(nproc)
 
-RUN rm -rf build && mkdir build && cd build && \
-    cmake -D CMAKE_CXX_STANDARD=20 .. && \
-    make -j$(nproc)
 
 FROM debian:bookworm-slim
 
@@ -51,8 +56,8 @@ RUN apt-get update && apt-get install -y \
 
 COPY --from=builder /app/build/server /usr/local/bin/server
 
-COPY --from=builder /usr/local/lib/libpqxx.* /usr/local/lib/
-COPY --from=builder /usr/local/lib/libpaho-mqttpp3.* /usr/local/lib/
+COPY --from=builder /usr/local/lib/libpqxx.so* /usr/local/lib/
+COPY --from=builder /usr/local/lib/libpaho-mqttpp3.so* /usr/local/lib/
 
 RUN ldconfig
 

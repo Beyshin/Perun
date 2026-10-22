@@ -7,36 +7,16 @@
 
 #include "crow.h"
 #include "MQTTClient.h"
-
+#include "Config.hpp"
+#include "Routes.hpp"
 
 using json = nlohmann::json;
-
-
-std::string get_db_url(){
-    if(getenv("DB_URL")) {
-        std::cout << "Using database URL from environment variable: " << getenv("DB_URL") << std::endl;
-        return getenv("DB_URL");
-    } else {
-        std::cout << "Environment variable DB_URL not set. Using default database URL." << std::endl;
-        return "postgresql://user:password@localhost:5432/iot_db";
-    }
-}
-
-std::string get_mqtt_url(){
-    if(getenv("MQTT_URL")) {
-        std::cout << "Using MQTT URL from environment variable: " << getenv("MQTT_URL") << std::endl;
-        return getenv("MQTT_URL");
-    } else {
-        std::cout << "Environment variable MQTT_URL not set. Using default MQTT URL." << std::endl;
-        return "tcp://localhost:1883";
-    }
-}
 
 void db_worker(TSQueue<MQTTMessage>& messageQueue) {
     bool running = true;
     while(running){
             try{
-                std::string conn_str =  get_db_url();
+                std::string conn_str = Config::get_db_url();
                 pqxx::connection conn(conn_str);
 
                 conn.prepare("insert_sensor_data", "INSERT INTO sensor_data (time, topic, temperature, humidity) VALUES (NOW(), $1, $2, $3)");
@@ -85,7 +65,7 @@ int main(int argc, char** argv){
     std::thread dbThread(db_worker, std::ref(messageQueue));
 
     //MQTT Client
-    std::string mqtt_url = get_mqtt_url();
+    std::string mqtt_url = Config::get_mqtt_url();
     MQTTClient mqttClient(mqtt_url, "perun_server", messageQueue);
     while(true){
         try{
@@ -99,34 +79,13 @@ int main(int argc, char** argv){
     }
     mqttClient.subscribe("sensor/temperature", 1);
 
-    //HTTP Routes
-    {
-        crow::SimpleApp app;
-        CROW_ROUTE(app, "/api/temperatures")([](){
-            pqxx::connection conn(get_db_url());
-            pqxx::work txn(conn);
-            
-            pqxx::result results = txn.exec("SELECT * FROM sensor_data ORDER BY time DESC LIMIT 10");
-            
-            json j = json::array();
+    //HTTP
+    crow::SimpleApp app;
+    Routes::setup_http_routes(app);
+    app.port(18080).multithreaded().run();
 
-            for(auto row :  results){
-                j.push_back({
-                    {"time", row["time"].as<std::string>()},
-                    {"topic", row["topic"].as<std::string>()},
-                    {"temperature", row["temperature"].as<double>()},
-                    {"humidity", row["humidity"].as<double>()}
-                });
-            }
 
-            auto res = crow::response(j.dump());
-            res.add_header("Content-Type", "application/json");
-            return res;
-        });
-
-        app.port(18080).multithreaded().run();
-    }
-
+    //SHUTDOWN
     std::cout << "[SERVER] Shutting down..." << std::endl;
     messageQueue.shutdown();
     if(dbThread.joinable()) {

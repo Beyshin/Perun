@@ -1,6 +1,6 @@
 #Ignore C++ (CMAKE and other build files)
 /server/build
-
+/build
 
 
 # Logs
@@ -29,3 +29,5 @@ package-lock.json
 *.sln
 *.sw?
 .idea
+
+commands.md
