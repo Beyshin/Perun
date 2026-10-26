@@ -1,5 +1,6 @@
 import {useEffect, useState} from "react";
 import Graph from "../components/Graph.jsx";
+import LogTable from "../components/LogTable.jsx";
 
 export default function Weather() {
     const [readings, setReadings] = useState([])
@@ -79,17 +80,18 @@ export default function Weather() {
         }
     };
 
+    const tableCols = [
+        {header: "Temperatura", accessor: "temperature"},
+        {header: "Wilgotność", accessor: "humidity"},
+        {header: "Czas", accessor: "time"},
+    ]
+
 
     return (
         <div className="flex-1">
             <h1 className="text-3xl font-bold text-gray-800">Stacja pogodowa</h1>
             <p className="mt-4 text-gray-600">Panel pogodowy</p>
-
-            <ul>
-                {readings.map((reading, index) => (
-                    <li key={index}>Temperatura: {reading.temperature} | Wilgotność: {reading.humidity} | Godzina: {reading.time} </li>
-                ))}
-            </ul>
+            <LogTable data={readings} columns={tableCols} />
             <div className="flex flex-wrap flex-row w-full">
                 {temperatureData.datasets && temperatureData.datasets.length > 0 && (
                     <Graph type="line" data={temperatureData} options={options} />
