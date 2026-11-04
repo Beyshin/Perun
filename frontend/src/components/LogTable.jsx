@@ -14,7 +14,6 @@ export default function LogTable({ columns, data }) {
         <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden flex flex-col">
             <div className="max-h-80 overflow-y-auto w-full">
                 <table className="min-w-full text-left text-sm whitespace-nowrap">
-
                     <thead className="uppercase tracking-wider border-b-2 border-gray-100 bg-gray-50 sticky top-0 z-10">
                     <tr>
                         {columns.map((col, index) => (

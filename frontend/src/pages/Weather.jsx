@@ -91,8 +91,7 @@ export default function Weather() {
         <div className="flex-1">
             <h1 className="text-3xl font-bold text-gray-800">Stacja pogodowa</h1>
             <p className="mt-4 text-gray-600">Panel pogodowy</p>
-            <LogTable data={readings} columns={tableCols} />
-            <div className="flex flex-wrap flex-row w-full">
+            <div className="flex flex-wrap flex-row w-full p-10">
                 {temperatureData.datasets && temperatureData.datasets.length > 0 && (
                     <Graph type="line" data={temperatureData} options={options} />
                 )}
@@ -101,6 +100,7 @@ export default function Weather() {
                     <Graph type="line" data={humidityData} options={options} />
                 )}
             </div>
+            <LogTable data={readings} columns={tableCols} />
         </div>
     )
 }
