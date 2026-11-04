@@ -70,6 +70,10 @@ public:
         m_client.subscribe(topic, qos)->wait();
     }
 
+    void publish(const std::string& topic, const std::string& payload){
+        m_client.publish(topic, payload)->wait();
+    }
+
     void disconnect() {
         mqtt::token_ptr disc_token = m_client.disconnect();
         disc_token->set_action_callback(m_disconnectListener);

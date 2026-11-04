@@ -3,9 +3,10 @@
 #include "crow.h"
 
 namespace Routes{
-    inline void setup_http_routes(crow::SimpleApp& app){
+    inline void setup_http_routes(crow::SimpleApp& app, MQTTClient& mqtt_client){
         //GET: /api/temperatures
         CROW_ROUTE(app, "/api/temperatures")([](){
+            try{
               pqxx::connection conn(Config::get_db_url());
               pqxx::work txn(conn);
 
@@ -25,7 +26,18 @@ namespace Routes{
               auto res = crow::response(j.dump());
               res.add_header("Content-Type", "application/json");
               return res;
+            }catch(const std::exception& e){
+                return crow::response(500, std::string("Database error when fetching records"));
+            }
         });
+
+
+        //POST: /api/temperature/trigger
+        CROW_ROUTE(app, "/api/temperatures/trigger").methods(crow::HTTPMethod::POST)([&mqtt_client]() {
+            mqtt_client.publish("sensor/temperature/trigger", "MEASURE");
+            return crow::response(202, "measurement triggered");
+        });
+
 
         CROW_ROUTE(app, "/api/light")([](){
             pqxx::connection conn(Config::get_db_url());

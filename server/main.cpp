@@ -12,7 +12,7 @@
 
 using json = nlohmann::json;
 
-void db_worker(TSQueue<MQTTMessage>& messageQueue) {
+void db_worker(TSQueue<MQTTMessage>& message_queue) {
     bool running = true;
     while(running){
             try{
@@ -23,7 +23,7 @@ void db_worker(TSQueue<MQTTMessage>& messageQueue) {
 
                 while (true) {
                     try {
-                    std::optional<MQTTMessage> message = messageQueue.pop();
+                    std::optional<MQTTMessage> message = message_queue.pop();
                     
                     if (!message) {
                         std::cout << "[DB THREAD] Queue is shutting down, exiting db_worker." << std::endl;
@@ -61,15 +61,15 @@ void db_worker(TSQueue<MQTTMessage>& messageQueue) {
 
 int main(int argc, char** argv){
 
-    TSQueue<MQTTMessage> messageQueue;
-    std::thread dbThread(db_worker, std::ref(messageQueue));
+    TSQueue<MQTTMessage> message_queue;
+    std::thread db_thread(db_worker, std::ref(message_queue));
 
     //MQTT Client
     std::string mqtt_url = Config::get_mqtt_url();
-    MQTTClient mqttClient(mqtt_url, "perun_server", messageQueue);
+    MQTTClient mqtt_client(mqtt_url, "perun_server", message_queue);
     while(true){
         try{
-            mqttClient.connect();
+            mqtt_client.connect();
             break;
         }catch(const mqtt::exception& e){
             std::cerr << "[MQTT CONNECTION ERROR] " << e.what() << std::endl;
@@ -77,23 +77,23 @@ int main(int argc, char** argv){
             std::this_thread::sleep_for(std::chrono::seconds(5));
         }
     }
-    mqttClient.subscribe("sensor/temperature", 1);
+    mqtt_client.subscribe("sensor/temperature", 1);
 
     //HTTP
     crow::SimpleApp app;
-    Routes::setup_http_routes(app);
+    Routes::setup_http_routes(app, mqtt_client);
     app.port(18080).multithreaded().run();
 
 
     //SHUTDOWN
     std::cout << "[SERVER] Shutting down..." << std::endl;
-    messageQueue.shutdown();
-    if(dbThread.joinable()) {
-        dbThread.join();
+    message_queue.shutdown();
+    if(db_thread.joinable()) {
+        db_thread.join();
     }
 
 
-    mqttClient.disconnect();
+    mqtt_client.disconnect();
 
     return 0;
 }

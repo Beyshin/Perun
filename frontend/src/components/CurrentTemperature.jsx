@@ -52,6 +52,13 @@ export default function CurrentTemperature() {
                         </span>
                     </div>
                 )}
+
+                <button onClick={async () => {
+                    const res = await fetch("/api/temperatures/trigger", {
+                        method: "POST",
+
+                    })
+                }}> Test</button>
             </div>
 
         </div>
