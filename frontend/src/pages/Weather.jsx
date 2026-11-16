@@ -1,106 +1,76 @@
 import {useEffect, useState} from "react";
 import Graph from "../components/Graph.jsx";
 import LogTable from "../components/LogTable.jsx";
+import { Link } from "react-router-dom"
+import { Thermometer, Droplets, ArrowRight } from "lucide-react";
+
+const mockReadings = [
+    { temperature: 20.5, humidity: 48, time: "2026-11-13T10:00:00" },
+    { temperature: 21.2, humidity: 46, time: "2026-11-13T11:00:00" },
+    { temperature: 22.8, humidity: 43, time: "2026-11-13T12:00:00" },
+    { temperature: 23.4, humidity: 40, time: "2026-11-13T13:00:00" },
+    { temperature: 22.1, humidity: 44, time: "2026-11-13T14:00:00" },
+    { temperature: 21.0, humidity: 50, time: "2026-11-13T15:00:00" },
+    { temperature: 19.8, humidity: 54, time: "2026-11-13T16:00:00" },
+];
 
 export default function Weather() {
-    const [readings, setReadings] = useState([])
-    const [temperatureData, setTemperatureData] = useState({
-        labels: [],
-        datasets: [{}]
-    });
-    const [humidityData, setHumidityData] = useState({
-        labels: [],
-        datasets: [{}]
-    });
+    const [latest, setLatest] = useState(mockReadings[mockReadings.length - 1]);
 
     useEffect(() => {
-        const fetchData = async () => {
-            try{
-                console.log("Fetching data...")
+        const fetchLatest = async () => {
+            try {
                 const res = await fetch("/api/temperatures");
-                const data = await res.json()
-                setReadings(data.reverse())
-            }catch(e){
-                console.log(e)
+                if (!res.ok) throw new Error("Brak API");
+                const data = await res.json();
+                if (Array.isArray(data) && data.length > 0) {
+                    setLatest(data[0]);
+                }
+            } catch {
+                setLatest(mockReadings[mockReadings.length - 1]);
             }
         };
-
-        fetchData();
-
-        //TODO: zmienic interwał na websockety
-        const interval = setInterval(fetchData, 5000);
-
-        return () => clearInterval(interval);
-    }, [])
-
-    useEffect(() => {
-        let data = readings;
-        const dateLabels = data.map(r => {
-            const date = new Date(r.time)
-            return date.toLocaleDateString("pl-PL", {});
-        })
-        console.log(dateLabels);
-
-        const temperatures = data.map(r => r.temperature);
-        console.log(temperatures)
-
-        setTemperatureData({
-            labels: dateLabels,
-            datasets: [{
-                label: 'Temperatura (°C)',
-                data: temperatures,
-                borderColor: 'rgba(255, 99, 132, 1)',
-                backgroundColor: 'rgba(255, 99, 132, 0.5)',
-            }]
-        })
-
-        const humidities = data.map(r => r.humidity)
-        console.log("Wilgotnosci:" + humidities)
-
-        setHumidityData({
-            labels: dateLabels,
-            datasets: [{
-                label: "Wilgotność (%)",
-                data: humidities,
-        }]
-        })
-
-    }, [readings])
-
-
-    const options = {
-        responsive: true,
-        plugins: {
-            legend: { position: 'top' },
-        },
-        scales: {
-            y: {
-                beginAtZero: false,
-            },
-        }
-    };
-
-    const tableCols = [
-        {header: "Temperatura", accessor: "temperature"},
-        {header: "Wilgotność", accessor: "humidity"},
-        {header: "Czas", accessor: "time"},
-    ]
-
+        fetchLatest();
+    }, []);
 
     return (
         <div className="flex-1">
             <h1 className="text-3xl font-bold text-gray-800">Stacja pogodowa</h1>
-            <p className="mt-4 text-gray-600">Panel pogodowy</p>
-            <div className="flex flex-wrap flex-row w-full p-10">
-                {temperatureData.datasets && temperatureData.datasets.length > 0 && (
-                    <Graph type="line" data={temperatureData} options={options} />
-                )}
+            <p className="mt-2 text-gray-700">Aktualne pomiary — kliknij wybrany parametr, aby zobaczyć wykres i historię</p>
 
-                {humidityData.datasets && humidityData.datasets.length > 0 && (
-                    <Graph type="line" data={humidityData} options={options} />
-                )}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
+                <div className="bg-white/25 backdrop-blur-md border border-white/40 rounded-2xl p-8 shadow-sm flex flex-col justify-between">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <h2 className="text-xl font-semibold text-gray-800">Temperatura</h2>
+                            <p className="text-5xl font-bold text-gray-900 mt-4">{latest.temperature}°C</p>
+                        </div>
+                        <Thermometer size={64} className="text-red-500 opacity-80" />
+                    </div>
+                    <Link
+                        to="/weather/temperature"
+                        className="mt-8 inline-flex items-center gap-2 text-sm font-semibold text-gray-800 bg-white/40 hover:bg-white/60 px-4 py-2.5 rounded-xl border border-white/50 w-fit transition-all"
+                    >
+                        Zobacz wykres i detale <ArrowRight size={16} />
+                    </Link>
+                </div>
+
+                <div className="bg-white/25 backdrop-blur-md border border-white/40 rounded-2xl p-8 shadow-sm flex flex-col justify-between">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <h2 className="text-xl font-semibold text-gray-800">Wilgotność</h2>
+                            <p className="text-5xl font-bold text-gray-900 mt-4">{latest.humidity}%</p>
+                        </div>
+                        <Droplets size={64} className="text-blue-500 opacity-80" />
+                    </div>
+                    <Link
+                        to="/weather/humidity"
+                        className="mt-8 inline-flex items-center gap-2 text-sm font-semibold text-gray-800 bg-white/40 hover:bg-white/60 px-4 py-2.5 rounded-xl border border-white/50 w-fit transition-all"
+                    >
+                        Zobacz wykres i detale <ArrowRight size={16} />
+                    </Link>
+                </div>
             </div>
-            <LogTable data={readings} columns={tableCols} />
         </div>
-    )
+    );
 }
