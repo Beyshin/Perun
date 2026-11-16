@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 const backgrounds = {
     sunny: "/images/sunny.mp4",
     rainy: "/images/rainy.mp4",
-    cloudy: "/images/cloudy.mp4",
+    cold: "/images/cold.mp4",
 };
 
 export default function Layout() {
@@ -32,7 +32,7 @@ export default function Layout() {
     const activeType = weather.humidity >= 75 
         ? "rainy" 
         : weather.temperature <= 10 
-        ? "cloudy" 
+        ? "cold" 
         : "sunny";
 
     return (

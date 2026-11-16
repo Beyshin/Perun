@@ -15,7 +15,7 @@ const mockReadings = [
 ];
 
 export default function WeatherDetails() {
-    const { metric } = useParams(); // "temperature" lub "humidity"
+    const { metric } = useParams();
     const isTemp = metric === "temperature";
     const [readings, setReadings] = useState(mockReadings);
 
