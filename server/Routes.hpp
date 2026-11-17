@@ -4,7 +4,8 @@
 
 namespace Routes{
     inline void setup_http_routes(crow::SimpleApp& app, MQTTClient& mqtt_client){
-        //GET: /api/temperatures
+        
+        //GET: /api/temperatures - GET ALL TEMPERATURES 
         CROW_ROUTE(app, "/api/temperatures")([](){
             try{
               pqxx::connection conn(Config::get_db_url());
@@ -27,39 +28,58 @@ namespace Routes{
               res.add_header("Content-Type", "application/json");
               return res;
             }catch(const std::exception& e){
-                return crow::response(500, std::string("Database error when fetching records"));
+                return crow::response(500, std::string("ERROR | Database error when fetching records"));
             }
         });
 
 
-        //POST: /api/temperature/trigger
-        CROW_ROUTE(app, "/api/temperatures/trigger").methods(crow::HTTPMethod::POST)([&mqtt_client]() {
-            mqtt_client.publish("sensor/temperature/trigger", "MEASURE");
-            return crow::response(202, "measurement triggered");
+        //POST: /api/temperature/measure - FORCE MEASURE WHEN ENTERING DASHBOARD
+        CROW_ROUTE(app, "/api/temperatures/measure").methods(crow::HTTPMethod::POST)([&mqtt_client](crow::request req) {
+            try{
+                mqtt_client.publish("sensor/temperature/measure", "MEASURE");
+                return crow::response(202, "measurement triggered");
+            }catch(const std::exception& e){
+                return crow::response(500, std::string("ERROR | Measurement failed."));
+            }
         });
 
 
+        //GET: /api/light/state - GET LIGHT STRIP STATE ON/OFF
+        CROW_ROUTE(app, "/api/light/state")([&mqtt_client](){
+            try{
+                mqtt_client.publish("light/state", "STATE");
+                return crow::response(200, std::string("Light switched."))
+            }catch(const std::exception& e){
+                return crow::response(500, std::string("ERROR | Failed to get light status."));
+            }
+        });
+
+        //GET /api/light - GET LIGHT STATUSES FOR LOG
         CROW_ROUTE(app, "/api/light")([](){
-            pqxx::connection conn(Config::get_db_url());
-            pqxx::work txn(conn);
-                
-            pqxx::result results = txn.exec("SELECT * from light_log ORDER BY time DESC");
-            nlohmann::json j = nlohmann::json::array();
+            try{
+                pqxx::connection conn(Config::get_db_url());
+                pqxx::work txn(conn);
+                    
+                pqxx::result results = txn.exec("SELECT * from light_log ORDER BY time DESC");
+                nlohmann::json j = nlohmann::json::array();
 
-            for(const auto& row : results){
-                j.push_back({
-                    {"time", row["time"].as<std::string>()},
-                    {"state", row["state"].as<std::string>()}
-                });
+                for(const auto& row : results){
+                    j.push_back({
+                        {"time", row["time"].as<std::string>()},
+                        {"state", row["state"].as<std::string>()}
+                    });
+                }
+
+                auto res = crow::response(j.dump());
+                res.add_header("Content-type", "application/json");
+
+                return res;
+            }catch(const std::exception& e){
+                return crow::response(500, std::string("ERROR | Failed to fetch light logs."));
             }
-
-            auto res = crow::response(j.dump());
-            res.add_header("Content-type", "application/json");
-
-            return res;
         });
 
-        //POST: /api/light
+        //POST: /api/light - SWITCH LIGHT STATE OFF/ON AND SAVE LOG
         CROW_ROUTE(app, "/api/light").methods(crow::HTTPMethod::POST)([](crow::request req){
             try{
                 pqxx::connection conn(Config::get_db_url());
@@ -85,6 +105,7 @@ namespace Routes{
             } catch (const std::exception& e) {
                 std::cerr << "[DB ERROR] " << e.what() << std::endl;
             }
+            return crow::response(500, std::string("ERROR | Failed to switch light on."));
         });
     }
 }

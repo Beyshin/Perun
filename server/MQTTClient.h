@@ -70,6 +70,7 @@ public:
         m_client.subscribe(topic, qos)->wait();
     }
 
+
     void publish(const std::string& topic, const std::string& payload){
         m_client.publish(topic, payload)->wait();
     }
