@@ -1,6 +1,6 @@
 import { Outlet } from "react-router-dom";
-import Sidebar from "../components/Sidebar";
 import { useEffect, useState } from "react";
+import Navbar from "../components/Navbar";
 
 const backgrounds = {
     sunny: "/images/sunny.mp4",
@@ -61,10 +61,10 @@ export default function Layout() {
                 }`}
             />
 
-            <Sidebar weather={weather} />
+            <Navbar weather={weather} />
 
             <main className="relative z-20 pt-28 px-8 pb-10 w-full">
-                <Outlet />
+                <Outlet context={{weather, setWeather}} />
             </main>
 
             <div className="fixed bottom-4 right-4 z-50 flex gap-2 bg-white/30 backdrop-blur-md p-2 rounded-xl border border-white/40 text-xs">

@@ -22,11 +22,18 @@ ChartJS.register(
 );
 
 
-export default function Graph(props) {
+export default function Graph({type, data, title = ""}) {
     const options = {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
+            title: {
+                display: Boolean(title),
+                text: title,
+                color: '#111827',
+                font: { size: 15, weight: 'bold' },
+                padding: { bottom: 6 },
+            },
             legend: {
                 position: 'top',
                 labels: { color: '#1f2937', font: { weight: 'bold' } }
@@ -49,7 +56,7 @@ export default function Graph(props) {
 
     return (
         <div className="flex-1 min-w-[350px] h-96 bg-white/30 backdrop-blur-md rounded-xl shadow-sm p-6 border border-white/40">
-            <Chart type={props.type} data={props.data} options={options} />
+            <Chart type={type} data={data} options={options} />
         </div>
     );
 }

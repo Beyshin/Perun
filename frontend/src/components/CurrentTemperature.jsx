@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Thermometer, ThermometerSnowflake, ThermometerSun } from "lucide-react";
 
 export default function CurrentTemperature() {
-    const [currentTemperature, setCurrentTemperature] = useState(null);
+    const [currentTemperature] = useState(null);
     const [theme, setTheme] = useState({
         bg: "from-gray-400 to-gray-600",
         icon: Thermometer

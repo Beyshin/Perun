@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 
 export default function Navbar({ weather }) {
-    const [pageIndex, setPageIndex] = useState(0);
+    const [setPageIndex] = useState(0);
 
     const temp = weather?.temperature ?? 24;
     const hum = weather?.humidity ?? 45;
@@ -37,6 +37,8 @@ export default function Navbar({ weather }) {
                 })}
             </ul>
 
+
+             {/*Wstępnie tylko do podglądu*/}
             <div className="flex items-center gap-6">
                 <div className="flex items-center gap-4 bg-white/30 px-3.5 py-1.5 rounded-lg border border-white/40 text-sm font-medium text-gray-800">
                     <span className="flex items-center gap-1">
