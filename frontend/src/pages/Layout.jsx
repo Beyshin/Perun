@@ -64,7 +64,7 @@ export default function Layout() {
             <Navbar weather={weather} />
 
             <ViewTransition>
-                <main className="relative z-20 pt-28 px-8 pb-10 w-full">
+                <main className="relative z-20 pt-35 px-8 pb-10 w-full">
                     <Outlet context={{weather, setWeather}} />
                 </main>
             </ViewTransition>
