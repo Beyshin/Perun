@@ -17,6 +17,7 @@ function formatReadings(list) {
     }));
 }
 
+
 export default function WeatherDetails() {
     const { metric } = useParams();
     const isTemp = metric === "temperature";
@@ -60,10 +61,13 @@ export default function WeatherDetails() {
     }, []);
 
     const days = period === "week" ? 7 : period === "month" ? 30 : 365;
+
     const latestTime = readings.reduce((max, r) => {
         const t = new Date(r.time).getTime();
         return t > max ? t : max;
     }, 0);
+
+    //cutoff w milisekundach
     const cutoff = latestTime - days * 24 * 60 * 60 * 1000;
 
     const filteredReadings = readings

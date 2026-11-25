@@ -1,5 +1,5 @@
 import { Outlet } from "react-router-dom";
-import { useEffect, useState } from "react";
+import {useEffect, useState, ViewTransition} from "react";
 import Navbar from "../components/Navbar";
 
 const backgrounds = {
@@ -63,14 +63,16 @@ export default function Layout() {
 
             <Navbar weather={weather} />
 
-            <main className="relative z-20 pt-28 px-8 pb-10 w-full">
-                <Outlet context={{weather, setWeather}} />
-            </main>
+            <ViewTransition>
+                <main className="relative z-20 pt-28 px-8 pb-10 w-full">
+                    <Outlet context={{weather, setWeather}} />
+                </main>
+            </ViewTransition>
 
             <div className="fixed bottom-4 right-4 z-50 flex gap-2 bg-white/30 backdrop-blur-md p-2 rounded-xl border border-white/40 text-xs">
-                <button onClick={() => setWeather({ temperature: 26, humidity: 40 })} className="px-2 py-1 bg-yellow-400/80 rounded cursor-pointer">☀️ Ciepło</button>
-                <button onClick={() => setWeather({ temperature: 16, humidity: 85 })} className="px-2 py-1 bg-blue-400/80 text-white rounded cursor-pointer">🌧️ Deszcz</button>
-                <button onClick={() => setWeather({ temperature: 4, humidity: 55 })} className="px-2 py-1 bg-cyan-200/80 rounded cursor-pointer">❄️ Zimno</button>
+                <button onClick={() => setWeather({ temperature: 26, humidity: 40 })} className="px-2 py-1 bg-yellow-400/80 rounded cursor-pointer">☀️</button>
+                <button onClick={() => setWeather({ temperature: 16, humidity: 85 })} className="px-2 py-1 bg-blue-400/80 text-white rounded cursor-pointer">🌧️</button>
+                <button onClick={() => setWeather({ temperature: 4, humidity: 55 })} className="px-2 py-1 bg-cyan-200/80 rounded cursor-pointer">❄️</button>
             </div>
         </div>
     );

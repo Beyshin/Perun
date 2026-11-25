@@ -18,7 +18,7 @@ export default function Clock() {
     });
 
     return (
-        <p className="text-7xl sm:text-8xl font-bold tracking-wider text-white tabular-nums drop-shadow-md">
+        <p className="text-[10vw] font-bold tracking-wider text-white tabular-nums drop-shadow-md">
             {time}
         </p>
     );
