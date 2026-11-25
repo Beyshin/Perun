@@ -1,11 +1,12 @@
-import CurrentTemperature from "../components/CurrentTemperature.jsx";
+import Clock from "../components/Clock.jsx";
+import UserWelcome from "../components/UserWelcome.jsx";
+import WeatherWidget from "../components/WeatherWidget.jsx";
 
 export default function Home() {
     return (
-        <div className="flex-1">
-            <h1 className="text-3xl font-bold text-gray-800">Home</h1>
-            <p className="mt-4 text-gray-600">Main panel</p>
-            <CurrentTemperature></CurrentTemperature>
+        <div className="flex-1 flex flex-col items-center justify-center min-h-[60vh]">
+            <Clock />
+            <UserWelcome firstname={"Adam"}/>
         </div>
-    )
+    );
 }

@@ -22,21 +22,41 @@ ChartJS.register(
 );
 
 
-export default function Graph(props) {
+export default function Graph({type, data, title = ""}) {
     const options = {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-            legend: { position: 'top' },
+            title: {
+                display: Boolean(title),
+                text: title,
+                color: '#111827',
+                font: { size: 15, weight: 'bold' },
+                padding: { bottom: 6 },
+            },
+            legend: {
+                position: 'top',
+                labels: { color: '#1f2937', font: { weight: 'bold' } }
+            },
         },
         scales: {
-            y: { title: { display: true, text: 'Wartość' } },
-            x: { title: { display: true, text: 'Czas' } }
+            y: {
+                beginAtZero: false,
+                title: { display: true, text: 'Wartość', color: '#374151' },
+                ticks: { color: '#1f2937' },
+                grid: { color: 'rgba(255, 255, 255, 0.25)' }
+            },
+            x: {
+                title: { display: true, text: 'Czas', color: '#374151' },
+                ticks: { color: '#1f2937' },
+                grid: { color: 'rgba(255, 255, 255, 0.25)' }
+            }
         }
     };
+
     return (
-        <div className="w-1/2 h-96 bg-white rounded-2xl shadow-lg p-4 border border-gray-100">
-            <Chart type={props.type} data={props.data} options={options} ></Chart>
+        <div className="flex-1 min-w-[350px] h-96 bg-white/30 backdrop-blur-md rounded-xl shadow-sm p-6 border border-white/40">
+            <Chart type={type} data={data} options={options} />
         </div>
-    )
+    );
 }

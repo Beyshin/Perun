@@ -1,106 +1,37 @@
 import {useEffect, useState} from "react";
-import Graph from "../components/Graph.jsx";
-import LogTable from "../components/LogTable.jsx";
+import { Link } from "react-router-dom"
+import { Thermometer, Droplets, ArrowRight } from "lucide-react";
+import { mockReadings } from "../components/MockReadings.jsx";
+import WeatherBlock from "../components/WeatherBlock.jsx";
 
 export default function Weather() {
-    const [readings, setReadings] = useState([])
-    const [temperatureData, setTemperatureData] = useState({
-        labels: [],
-        datasets: [{}]
-    });
-    const [humidityData, setHumidityData] = useState({
-        labels: [],
-        datasets: [{}]
-    });
+    const [latest, setLatest] = useState(mockReadings[mockReadings.length - 1]);
 
     useEffect(() => {
-        const fetchData = async () => {
-            try{
-                console.log("Fetching data...")
+        const fetchLatest = async () => {
+            try {
                 const res = await fetch("/api/temperatures");
-                const data = await res.json()
-                setReadings(data.reverse())
-            }catch(e){
-                console.log(e)
+                if (!res.ok) throw new Error("Brak API");
+                const data = await res.json();
+                if (Array.isArray(data) && data.length > 0) {
+                    setLatest(data[0]);
+                }
+            } catch {
+                setLatest(mockReadings[mockReadings.length - 1]);
             }
         };
-
-        fetchData();
-
-        //TODO: zmienic interwał na websockety
-        const interval = setInterval(fetchData, 5000);
-
-        return () => clearInterval(interval);
-    }, [])
-
-    useEffect(() => {
-        let data = readings;
-        const dateLabels = data.map(r => {
-            const date = new Date(r.time)
-            return date.toLocaleDateString("pl-PL", {});
-        })
-        console.log(dateLabels);
-
-        const temperatures = data.map(r => r.temperature);
-        console.log(temperatures)
-
-        setTemperatureData({
-            labels: dateLabels,
-            datasets: [{
-                label: 'Temperatura (°C)',
-                data: temperatures,
-                borderColor: 'rgba(255, 99, 132, 1)',
-                backgroundColor: 'rgba(255, 99, 132, 0.5)',
-            }]
-        })
-
-        const humidities = data.map(r => r.humidity)
-        console.log("Wilgotnosci:" + humidities)
-
-        setHumidityData({
-            labels: dateLabels,
-            datasets: [{
-                label: "Wilgotność (%)",
-                data: humidities,
-        }]
-        })
-
-    }, [readings])
-
-
-    const options = {
-        responsive: true,
-        plugins: {
-            legend: { position: 'top' },
-        },
-        scales: {
-            y: {
-                beginAtZero: false,
-            },
-        }
-    };
-
-    const tableCols = [
-        {header: "Temperatura", accessor: "temperature"},
-        {header: "Wilgotność", accessor: "humidity"},
-        {header: "Czas", accessor: "time"},
-    ]
-
+        fetchLatest();
+    }, []);
 
     return (
         <div className="flex-1">
             <h1 className="text-3xl font-bold text-gray-800">Stacja pogodowa</h1>
-            <p className="mt-4 text-gray-600">Panel pogodowy</p>
-            <div className="flex flex-wrap flex-row w-full p-10">
-                {temperatureData.datasets && temperatureData.datasets.length > 0 && (
-                    <Graph type="line" data={temperatureData} options={options} />
-                )}
+            <p className="mt-2 text-gray-700">Aktualne pomiary — kliknij wybrany parametr, aby zobaczyć wykres i historię</p>
 
-                {humidityData.datasets && humidityData.datasets.length > 0 && (
-                    <Graph type="line" data={humidityData} options={options} />
-                )}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
+                <WeatherBlock type="Temperatura" value={latest.temperature + "°C"} Icon={Thermometer} color="text-red-500" />
+                <WeatherBlock type="Wilogtność" value={latest.humidity + "%"} Icon={Droplets} color="text-blue-500"/>
             </div>
-            <LogTable data={readings} columns={tableCols} />
         </div>
-    )
+    );
 }
