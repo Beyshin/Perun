@@ -2,23 +2,23 @@ import { useEffect, useState } from "react";
 import { Thermometer, ThermometerSnowflake, ThermometerSun } from "lucide-react";
 
 export default function CurrentTemperature() {
-    const [currentTemperature] = useState(null);
+    const [currentTemperature, setCurrentTemperature] = useState(null);
     const [theme, setTheme] = useState({
-        bg: "from-gray-400 to-gray-600",
+        bg: "from-gray-400/80 to-gray-600/80",
         icon: Thermometer
     });
 
     useEffect(() => {
         if (currentTemperature === null || currentTemperature === "") {
-            setTheme({ bg: "from-slate-400 to-slate-600", icon: Thermometer });
+            setTheme({ bg: "from-slate-400/80 to-slate-600/80", icon: Thermometer });
         } else if (currentTemperature >= 30) {
-            setTheme({ bg: "from-rose-500 to-red-600", icon: ThermometerSun });
+            setTheme({ bg: "from-rose-500/80 to-red-600/80", icon: ThermometerSun });
         } else if (currentTemperature < 30 && currentTemperature >= 20) {
-            setTheme({ bg: "from-orange-400 to-amber-500", icon: ThermometerSun });
+            setTheme({ bg: "from-orange-400/80 to-amber-500/80", icon: ThermometerSun });
         } else if (currentTemperature >= 10 && currentTemperature < 20) {
-            setTheme({ bg: "from-emerald-400 to-teal-500", icon: Thermometer });
+            setTheme({ bg: "from-emerald-400/80 to-teal-500/80", icon: Thermometer });
         } else {
-            setTheme({ bg: "from-cyan-500 to-blue-600", icon: ThermometerSnowflake });
+            setTheme({ bg: "from-cyan-500/80 to-blue-600/80", icon: ThermometerSnowflake });
         }
     }, [currentTemperature]);
 
@@ -37,7 +37,7 @@ export default function CurrentTemperature() {
                 <Icon size={28} className="text-white/90" />
             </div>
 
-            <div className="flex justify-center items-center flex-1 relative z-10">
+            <div className="flex justify-center flex-col items-center flex-1 relative z-10">
                 {currentTemperature === null || currentTemperature === "" ? (
                     <div className="text-3xl font-medium text-white/90">
                         Brak odczytu
@@ -54,10 +54,8 @@ export default function CurrentTemperature() {
                 )}
 
                 <button onClick={async () => {
-                    const res = await fetch("/api/temperatures/trigger", {
-                        method: "POST",
-
-                    })
+                    let rand_temp = Math.floor(Math.random() * 50);
+                    setCurrentTemperature(rand_temp);
                 }}> Test</button>
             </div>
 

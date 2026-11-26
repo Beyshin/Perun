@@ -48,7 +48,7 @@ namespace Routes{
         CROW_ROUTE(app, "/api/light/state")([&mqtt_client](){
             try{
                 mqtt_client.publish("light/state", "STATE");
-                return crow::response(200, std::string("Light switched."))
+                return crow::response(200, std::string("Light switched."));
             }catch(const std::exception& e){
                 return crow::response(500, std::string("ERROR | Failed to get light status."));
             }

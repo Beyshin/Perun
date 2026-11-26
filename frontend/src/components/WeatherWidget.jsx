@@ -2,7 +2,7 @@ import {Droplets, Thermometer} from "lucide-react";
 
 export default function WeatherWidget({temp, hum}) {
     return (
-        <div className="flex items-center gap-4  px-7 py-3 rounded-lg  text-4xl text-gray-900 font-semibold m-auto">
+        <div className="flex items-center gap-4  px-7 py-3 rounded-lg  text-4xl text-gray-900 font-semibold">
             <span className="flex items-center gap-1">
                 <Thermometer size={40} className="text-red-500" />
                 {temp}°C
