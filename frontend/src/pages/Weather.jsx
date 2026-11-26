@@ -3,13 +3,16 @@ import { Link } from "react-router-dom"
 import { Thermometer, Droplets, ArrowRight } from "lucide-react";
 import { mockReadings } from "../components/MockReadings.jsx";
 import WeatherBlock from "../components/WeatherBlock.jsx";
+import Loading from "../components/Loading.jsx";
 
 export default function Weather() {
     const [latest, setLatest] = useState(mockReadings[mockReadings.length - 1]);
+    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         const fetchLatest = async () => {
             try {
+                setIsLoading(true);
                 const res = await fetch("/api/temperatures");
                 if (!res.ok) throw new Error("Brak API");
                 const data = await res.json();
@@ -19,9 +22,15 @@ export default function Weather() {
             } catch {
                 setLatest(mockReadings[mockReadings.length - 1]);
             }
+            setIsLoading(false);
         };
         fetchLatest();
     }, []);
+
+
+    if(isLoading) {
+        return <Loading />;
+    }
 
     return (
         <div className="flex-1">

@@ -4,6 +4,7 @@ import { ArrowLeft } from "lucide-react";
 import Graph from "../components/Graph.jsx";
 import LogTable from "../components/LogTable.jsx";
 import { mockReadings } from "../components/MockReadings.jsx";
+import Loading from "../components/Loading.jsx";
 
 function formatReadings(list) {
     return list.map((r) => ({
@@ -23,6 +24,7 @@ export default function WeatherDetails() {
     const isTemp = metric === "temperature";
     const [readings, setReadings] = useState(() => formatReadings(mockReadings));
     const [period, setPeriod] = useState("week");
+    const [isLoading, setIsLoading] = useState(true);
 
     const formatDateOnly = (isoTime) =>
         new Date(isoTime).toLocaleDateString("pl-PL", {
@@ -38,6 +40,7 @@ export default function WeatherDetails() {
 
         async function load() {
             try {
+
                 const res = await fetch("/api/temperatures");
                 if (!res.ok) throw new Error("Brak API");
                 const data = await res.json();
@@ -48,6 +51,8 @@ export default function WeatherDetails() {
                 if (!cancelled) {
                     setReadings(formatReadings(mockReadings));
                 }
+            }finally {
+                if (!cancelled) setIsLoading(false);
             }
         }
 
@@ -108,6 +113,11 @@ export default function WeatherDetails() {
             : { header: "Wilgotność (%)", accessor: "humidity" },
         { header: "Czas", accessor: "timeFormatted" },
     ];
+
+
+    if(isLoading) {
+        return <Loading />;
+    }
 
 return (
         <div className="flex-1 flex flex-col gap-4">

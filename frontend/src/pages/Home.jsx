@@ -29,7 +29,6 @@ export default function Home() {
                     <WeatherWidget temp={24} hum={24}/>
                     <WeatherBlock type="Temperatura" value={24 + "°C"} Icon={Thermometer} color="text-red-500" />
                     <WeatherBlock type="Wilogtność" value={24 + "%"} Icon={Droplets} color="text-blue-500"/>
-                    <LightSwitch />
                     <CurrentTemperature/>
                 </div>
             </div>

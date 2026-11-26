@@ -4,12 +4,12 @@ import { Link } from "react-router-dom";
 import WeatherWidget from "./WeatherWidget.jsx";
 
 export default function Navbar({ weather }) {
-    const [setPageIndex] = useState(0);
 
     const temp = weather?.temperature ?? 24;
     const hum = weather?.humidity ?? 45;
 
-    const icon_color = "#101828";
+    //const icon_color = "#101828";
+    const icon_color = "#ffffff";
 
     const pagesList = [
         { id: 0, name: "Home", icon: Home, path: "/" },
@@ -26,7 +26,6 @@ export default function Navbar({ weather }) {
                         <li
                             className="flex justify-center items-center px-2 cursor-pointer"
                             key={index}
-                            onClick={() => setPageIndex(index)}
                         >
                             <Link to={page.path}>
                                 <Icon

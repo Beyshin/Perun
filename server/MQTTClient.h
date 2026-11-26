@@ -75,6 +75,11 @@ public:
         m_client.publish(topic, payload)->wait();
     }
 
+    void publish_json(const std::string& topic, const nlohmann::json& payload) {
+        m_client.publish(topic, payload.dump())->wait();
+    }   
+
+
     void disconnect() {
         mqtt::token_ptr disc_token = m_client.disconnect();
         disc_token->set_action_callback(m_disconnectListener);

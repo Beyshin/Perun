@@ -1,19 +1,25 @@
 import {Lightbulb}  from "lucide-react";
 import {useState} from "react";
 
-export default function LightSwitch(props) {
+export default function LightSwitch({RGB}) {
 
     const [switched, setSwitched] = useState(true);
 
     const switchLight = async () =>{
         try{
+            console.log(RGB)
             const res = await fetch("/api/light", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
+
                 body: JSON.stringify({
                     "state": switched ? "set_off" : "set_on",
+                    "type": "rainbow",
+                    "R": RGB[0],
+                    "G": RGB[1],
+                    "B": RGB[2],
                 })
             });
 

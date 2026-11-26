@@ -32,6 +32,7 @@ namespace Routes{
             }
         });
 
+    
 
         //POST: /api/temperature/measure - FORCE MEASURE WHEN ENTERING DASHBOARD
         CROW_ROUTE(app, "/api/temperatures/measure").methods(crow::HTTPMethod::POST)([&mqtt_client](crow::request req) {
@@ -80,7 +81,7 @@ namespace Routes{
         });
 
         //POST: /api/light - SWITCH LIGHT STATE OFF/ON AND SAVE LOG
-        CROW_ROUTE(app, "/api/light").methods(crow::HTTPMethod::POST)([](crow::request req){
+        CROW_ROUTE(app, "/api/light").methods(crow::HTTPMethod::POST)([&mqtt_client](crow::request req){
             try{
                 pqxx::connection conn(Config::get_db_url());
                 pqxx::work txn(conn);
@@ -89,9 +90,24 @@ namespace Routes{
 
                 nlohmann::json body = nlohmann::json::parse(req.body);
 
-                std::string result_state = body["state"].get<std::string>();
-                std::cout << result_state << std::endl;
+                std::string result_state = body["state"].get<std::string>() == "set_off" ? "OFF" : "ON";
+                std::string light_type = body["type"].get<std::string>();
+                std::string r_color = body["R"].get<std::string>();
+                std::string g_color = body["G"].get<std::string>();
+                std::string b_color = body["B"].get<std::string>();
+
+                std::cout << "LIGHT SWITCH | State: " << result_state << "\tType: " << light_type << std::endl;
+                std::cout << "R: " << r_color << " G: " << g_color << " B: " <<  b_color << std::endl;
+
+
                 
+                //Send pure string
+                //mqtt_client.publish("/light/switch", "MSG: " + result_state + " TYPE: " + light_type);
+                
+                //Send json
+                mqtt_client.publish_json("/light/switch", body);
+
+
                 txn.exec_prepared("insert_light_log", result_state);
                 txn.commit();
 
@@ -103,7 +119,7 @@ namespace Routes{
                 std::cerr << "[DB SQL ERROR] " << e.what() << std::endl;
                 std::cerr << "Query was: " << e.query() << std::endl;
             } catch (const std::exception& e) {
-                std::cerr << "[DB ERROR] " << e.what() << std::endl;
+                std::cerr << "[ERROR] " << e.what() << std::endl;
             }
             return crow::response(500, std::string("ERROR | Failed to switch light on."));
         });
