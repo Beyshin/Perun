@@ -79,8 +79,12 @@ export default function WeatherDetails() {
         .filter((r) => new Date(r.time).getTime() >= cutoff)
         .sort((a, b) => new Date(a.time) - new Date(b.time));
 
-        
-    const dayReadings = readings.filter((r) => r.time.startsWith("2026-11-13T1"));
+
+    const today = new Date().toDateString();
+
+    const dayReadings = readings.filter(
+        (r) => new Date(r.time).toDateString() === today
+    );
     const dayChartData = {
         labels: dayReadings.map((r) =>
             new Date(r.time).toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" })
